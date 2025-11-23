@@ -1,10 +1,33 @@
-# 🚗 Carpooling System Backend + Driver Sentiment Engine
+# 🚗  Driver Sentiment Engine
 
-This is the **backend server** for the **Carpooling System** and the **Driver Sentiment Engine**.
+---
+
+## ⚙️ Installation & Setup
+
+### 1️⃣ Clone the repository
+```sh
+git clone https://github.com/Sanjeevjais/driver-sentiment-engine.git
+cd backend
+npm install
+
+### ENV FILE
+
+PORT=8080
+DB_URL=your_mongodb_connection_string
+SECRET=your_jwt_secret
+
+# Optional alert config (with defaults)
+ALERT_THRESHOLD=2.5
+ALERT_COOLDOWN_MINUTES=30
+
+npm start
+
+--------
+
+This is the **backend server** for the **Driver Sentiment Engine**.
 
 It powers:
 
-- Ride creation, discovery, and joining
 - User authentication & roles (RIDER / DRIVER / ADMIN)
 - Feedback collection for trips, drivers, app experience, and marshals
 - Real-time style **driver sentiment analytics & alerts** for admins
@@ -17,7 +40,7 @@ The backend is built using **Node.js, Express, MongoDB**, and **JWT** authentica
 ## 📺 Demo Video
 
 Watch the full project demonstration here:  
-🔗 [Video Demo](https://drive.google.com/drive/folders/1TDNILCOFfVENKyc-CCbK3V-lNyYy4pZm?usp=drive_link)
+🔗 [Video Demo]()
 
 ---
 
@@ -34,126 +57,93 @@ Watch the full project demonstration here:
 
 ---
 
-### 2. 🚙 Ride Management
+The Driver Sentiment Engine is a system designed to collect user feedback after trips, analyze driver performance, and automatically detect unsafe or low-performing drivers. It is intended for use in corporate mobility or ride-sharing systems where the goal is safety, reliability, and continuous feedback improvement.
 
-- Create a ride with:
-  - driver details
-  - vehicle details
-  - pickup & dropoff locations
-  - departure time, fare, available seats
-  - ride preferences (women-only, music, AC, pets, smoking, luggage)
-- Manage passengers:
-  - `approved_passengers` array
-  - `pending_passengers` array
-- Ride status lifecycle:
-  - `ACTIVE` → `IN_PROGRESS` → `RIDE_FINISHED` / `CANCELLED`
+This platform helps organizations proactively identify risky drivers before issues escalate and customer satisfaction drops.
 
+🧠 What This System Does
+
+The Driver Sentiment Engine makes feedback useful rather than just stored.
+
+It collects feedback from riders about:
+
+Drivers
+
+Specific trips
+
+The mobile application experience
+
+Marshals (on-ground staff)
+
+Then the system:
+
+Calculates sentiment scores based on rating and input
+
+Tracks performance over time
+
+Generates insights and trends
+
+Automatically triggers alerts when a driver's score falls below a configured threshold
+
+Admins get a data-driven dashboard to monitor safety and take action.
+
+🔐 Authentication & Roles
+
+The system supports secure authentication with role-based access control:
+
+Role	Capabilities
+Rider	Submit feedback
+Driver	View ride information and feedback trends
+Admin	View analytics, alerts, and overall system insights
+
+Authentication uses JWT Tokens with optional secure cookie handling for production environments.
+
+💬 Feedback System
+
+Users provide feedback using a configurable UI. Each entry includes:
+
+Field	Meaning
+Entity Type	DRIVER / TRIP / APP / MARSHAL
+Entity ID	The specific driver, trip, app version, or marshal
+Rating	Range: 1–5
+Comment	Text describing the experience
+
+All feedback is stored in MongoDB and used to generate sentiment metrics.
+
+📊 Analytics & Dashboard
+
+The dashboard provides:
+
+Average sentiment score across the system
+
+Positive / neutral / negative feedback breakdown
+
+Driver performance ranking
+
+Time-based trend monitoring
+
+Warning indicators for drivers approaching risk levels
+
+🚨 Automatic Alert System
+
+The engine includes a built-in alert mechanism.
+
+A driver is flagged when:
+
+average_rating < alert_threshold
+
+
+To prevent spam, alerts are regulated by:
+
+Cooldown window
+
+One alert per driver per timeframe
+
+Automatic resolution when rating improves
+
+Admins can also resolve alerts manually.
 ---
 
-### 3. 💬 Feedback & Driver Sentiment Engine
 
-- Collects feedback for multiple entities:
-  - `DRIVER`
-  - `TRIP`
-  - `APP` (mobile app experience)
-  - `MARSHAL` (on-ground ops staff)
-- Each feedback includes:
-  - `entityType` (DRIVER / TRIP / APP / MARSHAL)
-  - `entityId` (e.g. driver user `_id` for DRIVER)
-  - `rating` (1–5)
-  - `comment` (free text)
-  - `createdBy` (optional reference to User)
-- Efficient aggregation pipelines to compute:
-  - overall sentiment summary
-  - per-driver average rating & feedback counts
-- API endpoints:
-  - `POST /feedback` – submit feedback
-  - `GET /feedback/sentiment-summary` – global sentiment stats
-  - `GET /admin/drivers/stats` – per-driver analytics for admin dashboard
 
----
-
-### 4. 🚨 Alert System for Risky Drivers
-
-- Automatic detection of **low-performing drivers** whose average score drops below a configurable threshold (e.g. `2.5/5`)
-- `Alert` model stores:
-  - driver
-  - average rating at alert time
-  - threshold
-  - total feedback at alert time
-  - status: `OPEN` / `RESOLVED`
-  - timestamps (`createdAt`, `resolvedAt`, `lastNotifiedAt`)
-- Alert behavior:
-  - On every `DRIVER` feedback:
-    - Recompute driver’s average rating
-    - If below threshold → **raise or update alert**
-    - If above threshold → **auto-resolve existing alerts**
-  - Cooldown to avoid spam:
-    - No repeated alerts for same driver within X minutes (`ALERT_COOLDOWN_MINUTES`)
-- Endpoints:
-  - `GET /feedback/alerts` – list recent alerts (OPEN first)
-  - `PATCH /feedback/alerts/:id/resolve` – admin manually resolves an alert
-
----
-
-### 5. ⚙️ Configurable Thresholds & Feature Flags
-
-- `/config` endpoint can expose:
-  - `feedbackFlags` – enable/disable feedback types (Driver / Trip / App / Marshal) without code changes
-  - `alertThreshold` – can be changed at runtime or via environment variables
-- Designed so frontend can build a **configurable Feedback UI** and **Admin Dashboard** using this config.
-
----
-
-### 6. 🧠 Design & Implementation Notes (Plus Points)
-
-- **Authentication** – secure JWT with role-based authorization; cookies supported.
-- **Time & Space Efficiency**
-  - MongoDB aggregations for:
-    - per-driver stats
-    - sentiment summary
-  - Uses incremental updates (only aggregates on the driver being updated) instead of recomputing all drivers.
-- **Failure Handling**
-  - Controllers wrap logic in `try/catch` with appropriate HTTP status codes.
-  - Separation of concerns between feedback, analytics, and alerts makes recovery simpler.
-- **OOP & Modularity**
-  - Separate Mongoose models: `User`, `Ride`, `Feedback`, `Alert`.
-  - Controller modules encapsulate specific responsibilities:
-    - `feedback.controller`
-    - `feedbackAnalytics.controller`
-    - `auth.controller`
-    - `ride.controller`
-- **Trade-offs**
-  - Real-time behavior is simulated via fast HTTP + MongoDB aggregation; a queue/stream (Kafka/SQS) could be plugged in later if volume grows.
-  - Alert system stores alerts in DB for auditability instead of purely in memory/cache.
-- **Monitoring & Observability** (extendable)
-  - API design supports adding logs/metrics for:
-    - number of alerts
-    - distribution of ratings per driver
-  - Can be plugged into tools like Prometheus/Grafana, ELK, etc.
-- **Caching Ready**
-  - Clear boundaries around read-heavy endpoints (e.g., `/admin/drivers/stats`, `/feedback/sentiment-summary`) make them easy to cache later (Redis, in-memory cache).
-
----
-
-## 🛠 Tech Stack
-
-- **Runtime:** Node.js
-- **Framework:** Express.js
-- **Database:** MongoDB (Atlas or local)
-- **Auth:** JWT (with cookies support)
-- **ORM:** Mongoose
-
----
-### ENV FILE
-
-```
-PORT=8080
-DB_URL=your_mongodb_connection_string
-SECRET=your_jwt_secret
-
-# Optional alert config (with defaults)
-ALERT_THRESHOLD=2.5
-ALERT_COOLDOWN_MINUTES=30
-```
 

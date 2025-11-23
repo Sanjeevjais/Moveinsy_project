@@ -2,9 +2,9 @@
 ---
 
 ```md
-# 🖥️ Carpooling System Frontend + Driver Sentiment Dashboard
+# 🖥️ Driver Sentiment Dashboard
 
-This is the **frontend** for the Carpooling System and Driver Sentiment Engine.
+This is the **frontend** for the  Driver Sentiment Engine.
 
 It provides:
 
@@ -34,6 +34,10 @@ Built using **React**, **Vite**, **Tailwind CSS**, and **Zustand**.
 - **HTTP Client:** Axios
 
 ---
+<img width="1392" height="897" alt="image" src="https://github.com/user-attachments/assets/4a3fb0fb-cb8c-4f3d-b6fd-1009ac2bdcff" />
+<img width="552" height="489" alt="image" src="https://github.com/user-attachments/assets/9e857350-3e70-49fc-bd4b-05a15921f32e" />
+<img width="1864" height="450" alt="image" src="https://github.com/user-attachments/assets/35ffafae-d261-4b4f-bff5-0364fed3bc0e" />
+<img width="1862" height="881" alt="image" src="https://github.com/user-attachments/assets/3f8305d2-8d05-4b7e-867b-e894f93caa6b" />
 
 ## 📂 Project Structure
 
